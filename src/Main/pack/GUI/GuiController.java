@@ -15,6 +15,8 @@ import javafx.util.Pair;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class GuiController {
@@ -49,12 +51,12 @@ public class GuiController {
 
     @FXML ChoiceBox<String> operations_choice;
     private List<String> operations_list = Arrays.asList("Adding", "Subtracting",
-            "Multiplying", "Dividing", "Maximum", "Minimum");
+            "Multiplying", "Dividing", "Maximum", "Minimum", "Hemming and Euclidean distances");
     private ObservableList<String> o_list = FXCollections.observableArrayList(operations_list);
 
     @FXML ChoiceBox<String> func_choice;
     private List<String> func_list = Arrays.asList("Triangular","Bilateral Gaussian MF", "Generalized bell MF",
-            "The difference between the two sigmoid MFs", "Hemming and Euclidean distances");
+            "The difference between the two sigmoid MFs");
     private ObservableList<String> list = FXCollections.observableArrayList(func_list);
 
     @FXML Button build_button;
@@ -67,7 +69,6 @@ public class GuiController {
     // for lab 7
     @FXML ColorPicker color_Hem;
     @FXML ColorPicker color_Evc;
-    @FXML Button build_distance;
     @FXML TextField steps_distance;
     @FXML Label hem_distance;
     @FXML Label evc_distance;
@@ -89,8 +90,8 @@ public class GuiController {
         c1_inputA.setText("0"); c2_inputA.setText("0"); a1_inputA.setText("0"); a2_inputA.setText("0"); b_inputA.setText("0");
         c1_inputB.setText("0"); c2_inputB.setText("0"); a1_inputB.setText("0"); a2_inputB.setText("0"); b_inputB.setText("0");
 
-        x_column.setCellValueFactory(new PropertyValueFactory<TablePair, Double>("x"));
-        mx_column.setCellValueFactory(new PropertyValueFactory<TablePair, Double>("mx"));
+        x_column.setCellValueFactory(new PropertyValueFactory<>("x"));
+        mx_column.setCellValueFactory(new PropertyValueFactory<>("mx"));
     }
 
 // #################################  UTILS METHODS  ########################################
@@ -106,7 +107,7 @@ public class GuiController {
 
     @FXML
     private void startBuild() {
-        test();
+        buildGraphics();
     }
 
     private static double round(double value, int places) {
@@ -126,51 +127,27 @@ public class GuiController {
 
         switch ( operations ) {
             case "Adding":
-                A.forEach((x1, y1) -> {
-                    B.forEach((x2, y2) -> {
-                        result.add(new Pair<>(x1 + x2, Math.min(y1, y2)));
-                    });
-                });
+                A.forEach((x1, y1) -> B.forEach((x2, y2) -> result.add(new Pair<>(x1 + x2, Math.min(y1, y2)))));
                 break;
 
             case "Subtracting":
-                A.forEach((x1, y1) -> {
-                    B.forEach((x2, y2) -> {
-                        result.add(new Pair<>(x1 - x2, Math.min(y1, y2)));
-                    });
-                });
+                A.forEach((x1, y1) -> B.forEach((x2, y2) -> result.add(new Pair<>(x1 - x2, Math.min(y1, y2)))));
                 break;
 
             case "Multiplying":
-                A.forEach((x1, y1) -> {
-                    B.forEach((x2, y2) -> {
-                        result.add(new Pair<>(x1 * x2, Math.min(y1, y2)));
-                    });
-                });
+                A.forEach((x1, y1) -> B.forEach((x2, y2) -> result.add(new Pair<>(x1 * x2, Math.min(y1, y2)))));
                 break;
 
             case "Dividing":
-                A.forEach((x1, y1) -> {
-                    B.forEach((x2, y2) -> {
-                        result.add(new Pair<>(x1 / x2, Math.min(y1, y2)));
-                    });
-                });
+                A.forEach((x1, y1) -> B.forEach((x2, y2) -> result.add(new Pair<>(x1 / x2, Math.min(y1, y2)))));
                 break;
 
             case "Maximum":
-                A.forEach((x1, y1) -> {
-                    B.forEach((x2, y2) -> {
-                        result.add(new Pair<>(Math.max(x1, x2), Math.min(y1, y2)));
-                    });
-                });
+                A.forEach((x1, y1) -> B.forEach((x2, y2) -> result.add(new Pair<>(Math.max(x1, x2), Math.min(y1, y2)))));
                 break;
 
             case "Minimum":
-                A.forEach((x1, y1) -> {
-                    B.forEach((x2, y2) -> {
-                        result.add(new Pair<>(Math.min(x1, x2), Math.min(y1, y2)));
-                    });
-                });
+                A.forEach((x1, y1) -> B.forEach((x2, y2) -> result.add(new Pair<>(Math.min(x1, x2), Math.min(y1, y2)))));
                 break;
 
             default:
@@ -181,9 +158,9 @@ public class GuiController {
 
         result_size.setText(""+result.size());
 
-        System.out.println("------- final_list --------");
+        //System.out.println("------- final_list --------");
         result.sort(Comparator.comparing(Pair::getKey));
-        result.forEach((x) -> System.out.println("x = " + x.getKey() + " y = " + x.getValue()));
+        //result.forEach((x) -> System.out.println("x = " + x.getKey() + " y = " + x.getValue()));
 
         return result;
     }
@@ -239,17 +216,12 @@ public class GuiController {
             }
         }
 
-        System.out.println("------- rounded --------");
-        rounded.forEach((x, y) -> System.out.println("x = " + x + " y = " + y));
+        //System.out.println("------- rounded --------");
+        //rounded.forEach((x, y) -> System.out.println("x = " + x + " y = " + y));
 
         final_size.setText(""+rounded.size());
 
         return rounded;
-    }
-
-    // m
-    private int findCountSteps(Function main_func, Function func, double step) {
-        return (int) (findLength(main_func) / findLengthStep(main_func, func, step));
     }
 
     // d
@@ -268,9 +240,7 @@ public class GuiController {
         series.setName(func_name);
 
         TreeMap<Double, Double> map1 = func.pointsList(step);
-        map1.forEach((x, y) -> {
-            series.getData().add(new XYChart.Data<>(x, y));
-        });
+        map1.forEach((x, y) -> series.getData().add(new XYChart.Data<>(x, y)));
 
         setColor(series, picker);
 
@@ -282,16 +252,93 @@ public class GuiController {
         XYChart.Series<Double, Double> series = new XYChart.Series<>();
         graph.getData().add(series);
         series.setName("C function");
-        C_result.forEach((x, y) -> {
-            series.getData().add(new XYChart.Data<>(x, y));
-        });
+        C_result.forEach((x, y) -> series.getData().add(new XYChart.Data<>(x, y)));
 
         setColor(series, picker);
 
         return C_result;
     }
 
-    private void test () {
+    // create hemming collection
+    private TreeMap<Double, Double> hemmingBuild (Function first, Function second, LinkedList<Double> axisList) {
+        TreeMap<Double, Double> map = new TreeMap<>();
+
+        axisList.forEach((x) -> map.put(x, Math.abs(first.function(x) - second.function(x))));
+
+        return map;
+    }
+
+    // create euclidean collection
+    private TreeMap<Double, Double> euclideanBuild (Function first, Function second, LinkedList<Double> axisList) {
+        TreeMap<Double, Double> map = new TreeMap<>();
+
+        axisList.forEach((x) -> map.put(x, Math.pow(first.function(x) - second.function(x), 2)));
+
+        return map;
+    }
+
+    private void hemmingDistance (TreeMap<Double, Double> map) {
+        AtomicReference<Double> distance = new AtomicReference<>(0d);
+
+        map.forEach((x, y) -> distance.updateAndGet(v -> (v + y)));
+
+        hem_distance.setText("" + round(distance.get(), 4));
+    }
+
+    private void euclideanDistance (TreeMap<Double, Double> map) {
+        AtomicReference<Double> distance = new AtomicReference<>(0d);
+
+        map.forEach((x, y) -> distance.updateAndGet(v -> (v + y)));
+        distance.updateAndGet( v -> (Math.sqrt(distance.get())));
+
+        evc_distance.setText("" + round(distance.get(), 4));
+
+    }
+
+    // create list of axis X
+    private LinkedList<Double> createAxisList (Pair<Double, Double> borders, double step) {
+        LinkedList<Double> axisList = new LinkedList<>();
+        double length = round(( borders.getValue() - borders.getKey() )/ step, 2);
+
+        for (double i = borders.getKey(); i <= borders.getValue(); i+=length) {
+            axisList.add(i);
+        }
+
+        return axisList;
+    }
+
+    // find left and right x
+    private Pair<Double, Double> findBorders (Function first, Function second) {
+        return new Pair<> (Math.min(first.getLBorder(), second.getLBorder()), Math.max(first.getRBorder(), second.getRBorder()));
+    }
+
+    // build distances graphics
+    private void initDistanceFunc (Function first, Function second, double step) {
+        Pair<Double, Double> borders = findBorders(first, second);
+        LinkedList<Double> axisList = createAxisList(borders,step);
+
+        // build hemming
+        TreeMap<Double, Double> hemming_map = hemmingBuild(first, second, axisList);
+        XYChart.Series<Double, Double> series1 = new XYChart.Series<>();
+        graph.getData().add(series1);
+        series1.setName("Hem distance");
+        hemming_map.forEach((x, y) -> series1.getData().add(new XYChart.Data<>(x, y)));
+        setColor(series1, color_Hem);
+
+        // build euclidean
+        TreeMap<Double, Double> euclidean_map = euclideanBuild(first, second, axisList);
+        XYChart.Series<Double, Double> series2 = new XYChart.Series<>();
+        graph.getData().add(series2);
+        series2.setName("Euc distance");
+        euclidean_map.forEach((x, y) -> series2.getData().add(new XYChart.Data<>(x, y)));
+        setColor(series2, color_Evc);
+
+        hemmingDistance(hemming_map);
+        euclideanDistance(euclidean_map);
+
+    }
+
+    private void buildGraphics () {
         graph.getData().clear();
 
         try {
@@ -308,8 +355,10 @@ public class GuiController {
             double b_ = Double.parseDouble(b_inputB.getText());
 
             double step = Double.parseDouble(steps_input.getText());
+            int step_distance = Integer.parseInt(steps_distance.getText());
             TreeMap<Double, Double> C_result = new TreeMap<>();
 
+            graph.setCreateSymbols(false);
             switch (func_choice.getValue()) {
                 case "Triangular":
                     Triangular tri1 = new Triangular(c2, a2, b);
@@ -318,7 +367,10 @@ public class GuiController {
                     TreeMap<Double, Double> A = initFunc(tri1, this_step, "A function", color_A);
                     TreeMap<Double, Double> B = initFunc(tri2, this_step, "B function", color_B);
 
-                    C_result = initResultFunc(A, B, color_C);
+                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                        initDistanceFunc(tri1, tri2, step_distance);
+                    }
+                    else C_result = initResultFunc(A, B, color_C);
                     break;
 
                 case "Bilateral Gaussian MF":
@@ -328,7 +380,10 @@ public class GuiController {
                     TreeMap<Double, Double> A1 = initFunc(bil1, this_step1, "A function", color_A);
                     TreeMap<Double, Double> B1 = initFunc(bil2, this_step1, "B function", color_B);
 
-                    C_result = initResultFunc(A1, B1, color_C);
+                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                        initDistanceFunc(bil1, bil2, step_distance);
+                    }
+                    else C_result = initResultFunc(A1, B1, color_C);
                     break;
 
                 case "Generalized bell MF":
@@ -338,7 +393,10 @@ public class GuiController {
                     TreeMap<Double, Double> A2 = initFunc(bell, this_step2, "A function", color_A);
                     TreeMap<Double, Double> B2 = initFunc(bell1, this_step2, "B function", color_B);
 
-                    C_result = initResultFunc(A2, B2, color_C);
+                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                        initDistanceFunc(bell, bell1, step_distance);
+                    }
+                    else C_result = initResultFunc(A2, B2, color_C);
                     break;
 
                 case "The difference between the two sigmoid MFs":
@@ -348,7 +406,10 @@ public class GuiController {
                     TreeMap<Double, Double> A3 = initFunc(sigm, this_step3, "A function", color_A);
                     TreeMap<Double, Double> B3 = initFunc(sigm1, this_step3, "B function", color_B);
 
-                    C_result = initResultFunc(A3, B3, color_C);
+                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                        initDistanceFunc(sigm, sigm1, step_distance);
+                    }
+                    else C_result = initResultFunc(A3, B3, color_C);
                     break;
 
                 default:
@@ -356,8 +417,6 @@ public class GuiController {
                             "It looks like you did not select a function or entered a wrong name! Please check the data.");
                     break;
             }
-
-            graph.setCreateSymbols(false);
 
             data_table.setItems( new TablePair().createList(C_result));
 

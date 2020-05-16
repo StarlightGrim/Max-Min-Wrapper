@@ -13,7 +13,8 @@ public class Triangular implements Function {
         this.a3 = a3;
     }
 
-    private double triangular (double x) {
+    @Override
+    public double function(double x) {
         if (a1 < x && x <= a2) {
             return (x - a1) / (a2 - a1);
         }
@@ -27,12 +28,12 @@ public class Triangular implements Function {
     public TreeMap<Double, Double> pointsList(double step) {
         TreeMap<Double, Double> map = new TreeMap<>();
         for (double i = a1 ; i <= a3; i+=step) {
-            map.put(i, triangular(i));
+            map.put(i, function(i));
         }
 
         map.put(a3, 0d);
 
-        map.forEach((x,y) -> System.out.println("x = " + x + " y = " + y));
+        //map.forEach((x,y) -> System.out.println("x = " + x + " y = " + y));
         return map;
     }
 
@@ -48,11 +49,11 @@ public class Triangular implements Function {
 
     @Override
     public double getLBorder() {
-        return 0;
+        return a1;
     }
 
     @Override
     public double getRBorder() {
-        return 0;
+        return a3;
     }
 }

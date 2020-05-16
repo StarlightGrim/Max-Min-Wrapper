@@ -16,7 +16,8 @@ public class BellMF implements Function {
         this.c = c;
     }
 
-    private double genBell (double x) {
+    @Override
+    public double function (double x) {
         return 1 / ( 1+ Math.pow( Math.abs( (x - c) / a) , 2*b) );
     }
 
@@ -24,7 +25,7 @@ public class BellMF implements Function {
     public TreeMap<Double, Double> pointsList(double step) {
         TreeMap<Double, Double> map = new TreeMap<>();
         for (double i =  l_border; i <= r_border; i+=step) {
-            map.put(i, genBell(i));
+            map.put(i, function(i));
         }
 
         return map;
@@ -33,11 +34,11 @@ public class BellMF implements Function {
     @Override
     public double findLeftBorder() {
         double left_border = c;  // x
-        double pick_point = genBell(left_border); // m(x)
+        double pick_point = function(left_border); // m(x)
 
         while ( pick_point > 0.02) {
             left_border -= 0.5;
-            pick_point = genBell(left_border);
+            pick_point = function(left_border);
         }
 
         l_border = left_border;
@@ -47,11 +48,11 @@ public class BellMF implements Function {
     @Override
     public double findRightBorder() {
         double right_border = c;  // x
-        double pick_point = genBell(right_border); // m(x)
+        double pick_point = function(right_border); // m(x)
 
         while ( pick_point > 0.02) {
             right_border += 0.5;
-            pick_point = genBell(right_border);
+            pick_point = function(right_border);
         }
 
         r_border = right_border;

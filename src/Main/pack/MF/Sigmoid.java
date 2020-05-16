@@ -18,7 +18,8 @@ public class Sigmoid implements Function{
         this.c2 = c2;
     }
 
-    private double sigmoid (double x) {
+    @Override
+    public double function (double x) {
         return  (1 / (1 + Math.exp( -a1 * (x - c1)))) * (1 / (1 + Math.exp( -a2 * (x - c2))));
     }
 
@@ -26,7 +27,7 @@ public class Sigmoid implements Function{
     public TreeMap<Double, Double> pointsList(double step) {
         TreeMap<Double, Double> map = new TreeMap<>();
         for (double i =  l_border; i <= r_border; i+=step) {
-            map.put(i, sigmoid(i));
+            map.put(i, function(i));
             //System.out.println("i = " + i + " m(x) = " + sigmoid(i));
         }
 
@@ -36,14 +37,13 @@ public class Sigmoid implements Function{
     @Override
     public double findLeftBorder() {
         double left_border = c2;  // x
-        double pick_point = sigmoid(left_border); // m(x)
+        double pick_point = function(left_border); // m(x)
 
         while ( pick_point > 0.01) {
             left_border -= 0.5;
-            pick_point = sigmoid(left_border);
+            pick_point = function(left_border);
         }
 
-        System.out.println("left border = " + left_border);
         l_border = left_border;
         return left_border;
     }
@@ -51,14 +51,13 @@ public class Sigmoid implements Function{
     @Override
     public double findRightBorder() {
         double right_border = c2;  // x
-        double pick_point = sigmoid(right_border); // m(x)
+        double pick_point = function(right_border); // m(x)
 
         while ( pick_point <= 0.9999) {
             right_border += 0.5;
-            pick_point = sigmoid(right_border);
+            pick_point = function(right_border);
         }
 
-        System.out.println("right border = " + right_border);
         r_border = right_border;
         return right_border;
     }

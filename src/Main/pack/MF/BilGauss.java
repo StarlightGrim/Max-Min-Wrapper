@@ -18,11 +18,30 @@ public class BilGauss implements Function{
         this.c2 = c2;
     }
 
+    private double exponenta (double x, double c, double a) {
+        return Math.exp( - ( Math.pow(x - c, 2) / (2 * a*a )));
+    }
+
+    @Override
+    public double function (double x) {
+        if (c1 < c2) {
+            if (x < c1) return exponenta(x, c1, a1);
+            else if (x  > c2) return exponenta(x, c2, a2);
+            else return 1;
+        }
+        else if (c1 > c2) {
+            if (x < c1) return exponenta(x, c1, a1);
+            else if (x  > c2) return exponenta(x, c2, a2);
+            else return exponenta(x, c1, a1) * exponenta(x, c2, a2);
+        }
+        return 1;
+    }
+
     @Override
     public TreeMap<Double, Double> pointsList (double step) {
         TreeMap<Double, Double> map = new TreeMap<>();
         for (double i =  l_border; i <= r_border; i+=step) {
-            map.put(i, bilGauss(i));
+            map.put(i, function(i));
         }
 
         return map;
@@ -31,11 +50,11 @@ public class BilGauss implements Function{
     @Override
     public double findLeftBorder () {
         double left_border = c1;  // x
-        double pick_point = bilGauss(left_border); // m(x)
+        double pick_point = function(left_border); // m(x)
 
         while ( pick_point > 0.05) {
             left_border -= 0.5;
-            pick_point = bilGauss(left_border);
+            pick_point = function(left_border);
         }
 
         l_border = left_border;
@@ -45,11 +64,11 @@ public class BilGauss implements Function{
     @Override
     public double findRightBorder () {
         double right_border = c2;  // x
-        double pick_point = bilGauss(right_border); // m(x)
+        double pick_point = function(right_border); // m(x)
 
         while ( pick_point > 0.05) {
             right_border += 0.5;
-            pick_point = bilGauss(right_border);
+            pick_point = function(right_border);
         }
 
         r_border = right_border;
@@ -66,21 +85,4 @@ public class BilGauss implements Function{
         return r_border;
     }
 
-    private double exponenta (double x, double c, double a) {
-        return Math.exp( - ( Math.pow(x - c, 2) / (2 * a*a )));
-    }
-
-    private double bilGauss (double x) {
-        if (c1 < c2) {
-            if (x < c1) return exponenta(x, c1, a1);
-            else if (x  > c2) return exponenta(x, c2, a2);
-            else return 1;
-        }
-        else if (c1 > c2) {
-            if (x < c1) return exponenta(x, c1, a1);
-            else if (x  > c2) return exponenta(x, c2, a2);
-            else return exponenta(x, c1, a1) * exponenta(x, c2, a2);
-        }
-        return 1;
-    }
 }
