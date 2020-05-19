@@ -20,7 +20,7 @@
           <TableColumn fx:id="mx_column" prefWidth="91.0" text="M(x)" />
         </columns>
       </TableView>
-      <LineChart fx:id="graph" layoutX="14.0" layoutY="181.0" prefHeight="345.0" prefWidth="689.0">
+      <LineChart fx:id="graph" layoutX="14.0" layoutY="224.0" prefHeight="345.0" prefWidth="689.0">
         <xAxis>
           <NumberAxis fx:id="chartX" side="BOTTOM" />
         </xAxis>
@@ -29,12 +29,12 @@
         </yAxis>
       </LineChart>
       <Label layoutX="723.0" layoutY="203.0" prefHeight="20.0" prefWidth="74.0" text="Steps count:" />
-      <Label layoutX="113.0" layoutY="536.0" prefHeight="20.0" prefWidth="47.0" text="mA(x) : " />
-      <Label layoutX="313.0" layoutY="536.0" prefHeight="20.0" prefWidth="47.0" text="mA(x) : " />
-      <Label layoutX="513.0" layoutY="536.0" prefHeight="20.0" prefWidth="47.0" text="mA(x) : " />
-      <Label fx:id="mA_x" layoutX="160.0" layoutY="536.0" prefHeight="20.0" prefWidth="47.0" />
-      <Label fx:id="mB_x" layoutX="357.0" layoutY="536.0" prefHeight="20.0" prefWidth="47.0" />
-      <Label fx:id="mC_x" layoutX="557.0" layoutY="536.0" prefHeight="20.0" prefWidth="47.0" />
+      <Label layoutX="29.0" layoutY="205.0" prefHeight="20.0" prefWidth="47.0" text="mA(x) : " />
+      <Label layoutX="134.0" layoutY="205.0" prefHeight="20.0" prefWidth="47.0" text="mB(x) : " />
+      <Label layoutX="241.0" layoutY="205.0" prefHeight="20.0" prefWidth="47.0" text="mC(x) : " />
+      <Label fx:id="mA_x" layoutX="76.0" layoutY="205.0" prefHeight="20.0" prefWidth="47.0" />
+      <Label fx:id="mB_x" layoutX="178.0" layoutY="205.0" prefHeight="20.0" prefWidth="47.0" />
+      <Label fx:id="mC_x" layoutX="285.0" layoutY="205.0" prefHeight="20.0" prefWidth="47.0" />
       <ChoiceBox fx:id="func_choice" layoutX="723.0" layoutY="245.0" prefHeight="22.0" prefWidth="74.0" />
       <Button fx:id="build_button" layoutX="818.0" layoutY="245.0" mnemonicParsing="false" onMouseClicked="#startBuild" prefHeight="22.0" prefWidth="89.0" text="Build" />
       <RadioButton fx:id="full_radio" layoutX="721.0" layoutY="323.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="74.0" text="Full Result" />
@@ -89,16 +89,24 @@
       </AnchorPane>
       <Label layoutX="32.0" layoutY="130.0" prefHeight="20.0" prefWidth="95.0" text="Step distance:" />
       <TextField fx:id="steps_distance" layoutX="136.0" layoutY="129.0" prefHeight="22.0" prefWidth="89.0" promptText="steps distance..." />
-      <Label layoutX="380.0" layoutY="130.0" prefHeight="20.0" prefWidth="74.0" text="Hem distance:" />
+      <Label layoutX="380.0" layoutY="130.0" prefHeight="20.0" prefWidth="74.0" text="Hem dist 1:" />
       <Label fx:id="hem_distance" layoutX="463.0" layoutY="130.0" prefHeight="20.0" prefWidth="60.0" />
-      <Label layoutX="530.0" layoutY="130.0" prefHeight="20.0" prefWidth="80.0" text="Evclid distance:" />
+      <Label layoutX="530.0" layoutY="130.0" prefHeight="20.0" prefWidth="80.0" text="Evclid dist 1:" />
       <Label fx:id="evc_distance" layoutX="633.0" layoutY="130.0" prefHeight="20.0" prefWidth="60.0" />
-      <Label layoutX="380.0" layoutY="161.0" prefHeight="20.0" prefWidth="74.0" text="Linear index:" />
-      <Label fx:id="linear_index" layoutX="463.0" layoutY="161.0" prefHeight="20.0" prefWidth="60.0" />
-      <Label layoutX="530.0" layoutY="161.0" prefHeight="20.0" prefWidth="88.0" text="Quadratic index:" />
-      <Label fx:id="quadratic_index" layoutX="633.0" layoutY="161.0" prefHeight="20.0" prefWidth="60.0" />
+      <Label layoutX="380.0" layoutY="154.0" prefHeight="20.0" prefWidth="74.0" text="Linear index 1:" />
+      <Label fx:id="linear_index" layoutX="463.0" layoutY="154.0" prefHeight="20.0" prefWidth="60.0" />
+      <Label layoutX="530.0" layoutY="154.0" prefHeight="20.0" prefWidth="88.0" text="Quadratic indx 1:" />
+      <Label fx:id="quadratic_index" layoutX="633.0" layoutY="154.0" prefHeight="20.0" prefWidth="60.0" />
       <RadioButton fx:id="a_radio_choice" layoutX="29.0" layoutY="164.0" mnemonicParsing="false" onMouseClicked="#activateARadio" text="Build A Graphic" />
       <RadioButton fx:id="b_radio_choice" layoutX="133.0" layoutY="164.0" mnemonicParsing="false" onMouseClicked="#activateBRadio" text="Build B Graphic" />
       <RadioButton fx:id="both_radio_choice" layoutX="243.0" layoutY="164.0" mnemonicParsing="false" onMouseClicked="#activateBothRadio" text="Both Graphics" />
+      <Label layoutX="380.0" layoutY="181.0" prefHeight="20.0" prefWidth="74.0" text="Hem dist 2:" />
+      <Label fx:id="hem_distance1" layoutX="463.0" layoutY="181.0" prefHeight="20.0" prefWidth="60.0" />
+      <Label layoutX="530.0" layoutY="181.0" prefHeight="20.0" prefWidth="80.0" text="Evclid dist 2:" />
+      <Label fx:id="evc_distance1" layoutX="633.0" layoutY="181.0" prefHeight="20.0" prefWidth="60.0" />
+      <Label layoutX="380.0" layoutY="205.0" prefHeight="20.0" prefWidth="74.0" text="Linear index 2:" />
+      <Label fx:id="linear_index1" layoutX="463.0" layoutY="205.0" prefHeight="20.0" prefWidth="60.0" />
+      <Label layoutX="530.0" layoutY="205.0" prefHeight="20.0" prefWidth="88.0" text="Quadratic indx 2:" />
+      <Label fx:id="quadratic_index1" layoutX="633.0" layoutY="205.0" prefHeight="20.0" prefWidth="60.0" />
    </children>
 </AnchorPane>

@@ -71,10 +71,14 @@ public class GuiController {
     @FXML TextField steps_distance;
     @FXML Label hem_distance;
     @FXML Label evc_distance;
+    @FXML Label hem_distance1;
+    @FXML Label evc_distance1;
 
     // for lab 8
     @FXML Label linear_index;
     @FXML Label quadratic_index;
+    @FXML Label linear_index1;
+    @FXML Label quadratic_index1;
     @FXML RadioButton a_radio_choice;
     @FXML RadioButton b_radio_choice;
     @FXML RadioButton both_radio_choice;
@@ -288,29 +292,37 @@ public class GuiController {
     }
 
     // calculate hemming distance
-    private double hemmingDistance (TreeMap<Double, Double> map) {
+    private double hemmingDistance (TreeMap<Double, Double> map, Label hem_show, Label index_hide) {
         AtomicReference<Double> distance = new AtomicReference<>(0d);
         map.forEach((x, y) -> distance.updateAndGet(v -> (v + y)));
 
         double hem = round(distance.get(), 4);
-        hem_distance.setText("" + hem);
-        linear_index.setText("");
+        showHemming(hem, hem_show, index_hide);
 
         return hem;
     }
 
+    private void showHemming (double hem, Label hem_show, Label index_hide) {
+        hem_show.setText("" + hem);
+        index_hide.setText("");
+    }
+
     // calculate euclidean distance
-    private double euclideanDistance (TreeMap<Double, Double> map) {
+    private double euclideanDistance (TreeMap<Double, Double> map, Label euc_show, Label index_hide) {
         AtomicReference<Double> distance = new AtomicReference<>(0d);
 
         map.forEach((x, y) -> distance.updateAndGet(v -> (v + y)));
         distance.updateAndGet( v -> (Math.sqrt(distance.get())));
 
         double euc = round(distance.get(), 4);
-        evc_distance.setText("" + euc);
-        quadratic_index.setText("");
+        showEuclid(euc, euc_show, index_hide);
 
         return euc;
+    }
+
+    private void showEuclid (double euc, Label euc_show, Label index_hide) {
+        euc_show.setText("" + euc);
+        index_hide.setText("");
     }
 
     // create list of axis X
@@ -330,7 +342,7 @@ public class GuiController {
         return new Pair<> (Math.min(first.getLBorder(), second.getLBorder()), Math.max(first.getRBorder(), second.getRBorder()));
     }
 
-    private void initHemmingDistance (Function first, Function second, LinkedList<Double> axisList) {
+    private void initHemmingDistance (Function first, Function second, LinkedList<Double> axisList, Label hem_show, Label index_hide) {
         TreeMap<Double, Double> hemming_map = hemmingBuild(first, second, axisList);
         XYChart.Series<Double, Double> series1 = new XYChart.Series<>();
         graph.getData().add(series1);
@@ -338,10 +350,10 @@ public class GuiController {
         hemming_map.forEach((x, y) -> series1.getData().add(new XYChart.Data<>(x, y)));
         setColor(series1, color_Hem);
 
-        hemmingDistance(hemming_map);
+        hemmingDistance(hemming_map, hem_show, index_hide);
     }
 
-    private void initEuclideanDistance (Function first, Function second, LinkedList<Double> axisList) {
+    private void initEuclideanDistance (Function first, Function second, LinkedList<Double> axisList, Label euc_show, Label index_hide) {
         TreeMap<Double, Double> euclidean_map = euclideanBuild(first, second, axisList);
         XYChart.Series<Double, Double> series2 = new XYChart.Series<>();
         graph.getData().add(series2);
@@ -349,16 +361,18 @@ public class GuiController {
         euclidean_map.forEach((x, y) -> series2.getData().add(new XYChart.Data<>(x, y)));
         setColor(series2, color_Evc);
 
-        euclideanDistance(euclidean_map);
+        euclideanDistance(euclidean_map, euc_show, index_hide);
     }
 
     // build distances graphics
-    private void initDistanceFunc (Function first, Function second, double step) {
+    private void initDistanceFunc (Function first, Function second, double step, Label hem_show, Label index_hide1, Label euc_show, Label index_hide2) {
         Pair<Double, Double> borders = findBorders(first, second);
         LinkedList<Double> axisList = createAxisList(borders,step);
 
-        initHemmingDistance(first, second, axisList);
-        initEuclideanDistance(first, second, axisList);
+        refreshLabels();
+
+        initHemmingDistance(first, second, axisList, hem_show, index_hide1);
+        initEuclideanDistance(first, second, axisList, euc_show, index_hide2);
     }
 
     //############################################  METHODS FOR 8 LAB ##################################################
@@ -401,43 +415,49 @@ public class GuiController {
         setColor(series, picker);
     }
 
-    private void initIndexesCalculator (Function first, Function second, double step) {
+    private void initIndexes (Function first, double step, String func_name, String crisp_name, Label linear, Label quadratic, ColorPicker fuzzy_color, ColorPicker crisp_color,
+                              Label hem_show, Label index_hide1, Label euc_show, Label index_hide2) {
+
+        double first_step = findLength(first) / step;
+
+        CrispSet crisp = new CrispSet();
+        TreeMap<Double, Double> crispList = crisp.getList(first.pointsList(first_step));
+        initFunc(first, first_step, func_name, fuzzy_color);
+        initCrisp(crispList, crisp_name, crisp_color);
+
+        double linearIndex = linearIndex(hemmingDistance(hemmingCrispBuild(first, crisp, createAxisList(new Pair<>(first.getLBorder(), first.getRBorder()), step)), hem_show, index_hide1), step);
+        double quadraticIndex = quadraticIndex(euclideanDistance(euclideanCrispBuild(first, crisp, createAxisList(new Pair<>(first.getLBorder(), first.getRBorder()), step)), euc_show, index_hide2), step);
+
+        showIndexes(linear, quadratic, linearIndex, quadraticIndex);
+    }
+
+    private void showIndexes (Label linear, Label quadratic, double linearIndex, double quadraticIndex) {
+        linear.setText("" + linearIndex);
+        quadratic.setText("" + quadraticIndex);
+    }
+
+    private void initIndexesChooser (Function first, Function second, double step) {
         if (a_radio_choice.isSelected()) {
-            double first_step = findLength(first) / step;
-
-            CrispSet crisp = new CrispSet();
-            TreeMap<Double, Double> crispList = crisp.getList(first.pointsList(first_step));
-            initFunc(first, first_step, "A function", color_A);
-            initCrisp(crispList, "Crisp Set A", color_Hem);
-
-            double linearIndex = linearIndex(hemmingDistance(hemmingCrispBuild(first, crisp, createAxisList(new Pair<>(first.getLBorder(), first.getRBorder()), step))), step);
-            double quadraticIndex = quadraticIndex(euclideanDistance(euclideanCrispBuild(first, crisp, createAxisList(new Pair<>(first.getLBorder(), first.getRBorder()), step))), step);
-
-            linear_index.setText("" + linearIndex);
-            quadratic_index.setText("" + quadraticIndex);
+            refreshLabels();
+            initIndexes(first, step, "A func", "A crisp", linear_index, quadratic_index, color_A, color_Hem, hem_distance, linear_index, evc_distance, quadratic_index);
         }
         else if (b_radio_choice.isSelected()) {
-            double second_step = findLength(second) / step;
-
-            CrispSet crisp = new CrispSet();
-            TreeMap<Double, Double> crispList = crisp.getList(second.pointsList(second_step));
-            initFunc(second, second_step, "B function", color_B);
-            initCrisp(crispList, "Crisp Set B", color_Evc);
+            refreshLabels();
+            initIndexes(second, step, "B func", "B crisp", linear_index1, quadratic_index1, color_B, color_Evc, hem_distance1, linear_index1, evc_distance1, quadratic_index1);
         }
         else {
-            double first_step = findLength(first) / step;
-            double second_step = findLength(second) / step;
-
-            CrispSet crisp = new CrispSet();
-            TreeMap<Double, Double> crispList = crisp.getList(first.pointsList(first_step));
-            initFunc(first, first_step, "A function", color_A);
-            initCrisp(crispList, "Crisp Set A", color_Hem);
-
-            CrispSet crisp_ = new CrispSet();
-            TreeMap<Double, Double> crispList_ = crisp_.getList(second.pointsList(second_step));
-            initFunc(second, second_step, "B function", color_B);
-            initCrisp(crispList_, "Crisp Set B", color_Evc);
+            refreshLabels();
+            initIndexes(first, step, "A func", "A crisp", linear_index, quadratic_index, color_A, color_Hem, hem_distance, linear_index, evc_distance, quadratic_index);
+            initIndexes(second, step, "B func", "B crisp", linear_index1, quadratic_index1, color_B, color_Evc, hem_distance1, linear_index1, evc_distance1, quadratic_index1);
         }
+    }
+
+    private void refreshLabels () {
+        linear_index.setText(""); linear_index1.setText("");
+        quadratic_index.setText(""); quadratic_index1.setText("");
+
+        hem_distance.setText(""); hem_distance1.setText("");
+        evc_distance.setText(""); evc_distance1.setText("");
     }
 
     @FXML
@@ -492,11 +512,11 @@ public class GuiController {
                         TreeMap<Double, Double> B = initFunc(tri2, this_step, "B function", color_B);
 
                         if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                            initDistanceFunc(tri1, tri2, step_distance);
+                            initDistanceFunc(tri1, tri2, step_distance, hem_distance, linear_index, evc_distance, quadratic_index);
                         }
                         else C_result = initResultFunc(A, B, color_C);
                     }
-                    else initIndexesCalculator(tri1, tri2, step_distance);
+                    else initIndexesChooser(tri1, tri2, step_distance);
 
                     break;
 
@@ -510,11 +530,11 @@ public class GuiController {
                         TreeMap<Double, Double> B1 = initFunc(bil2, this_step1, "B function", color_B);
 
                         if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                            initDistanceFunc(bil1, bil2, step_distance);
+                            initDistanceFunc(bil1, bil2, step_distance, hem_distance, linear_index, evc_distance, quadratic_index);
                         }
                         else C_result = initResultFunc(A1, B1, color_C);
                     }
-                    else initIndexesCalculator(bil1, bil2, step_distance);
+                    else initIndexesChooser(bil1, bil2, step_distance);
 
                     break;
 
@@ -528,11 +548,11 @@ public class GuiController {
                         TreeMap<Double, Double> B2 = initFunc(bell1, this_step2, "B function", color_B);
 
                         if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                            initDistanceFunc(bell, bell1, step_distance);
+                            initDistanceFunc(bell, bell1, step_distance, hem_distance, linear_index, evc_distance, quadratic_index);
                         }
                         else C_result = initResultFunc(A2, B2, color_C);
                     }
-                    else initIndexesCalculator(bell, bell1, step_distance);
+                    else initIndexesChooser(bell, bell1, step_distance);
 
                     break;
 
@@ -546,11 +566,11 @@ public class GuiController {
                         TreeMap<Double, Double> B3 = initFunc(sigm1, this_step3, "B function", color_B);
 
                         if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                            initDistanceFunc(sigm, sigm1, step_distance);
+                            initDistanceFunc(sigm, sigm1, step_distance, hem_distance, linear_index, evc_distance, quadratic_index);
                         }
                         else C_result = initResultFunc(A3, B3, color_C);
                     }
-                    else initIndexesCalculator(sigm, sigm1, step_distance);
+                    else initIndexesChooser(sigm, sigm1, step_distance);
 
                     break;
 
