@@ -15,7 +15,6 @@ import javafx.util.Pair;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -50,8 +49,8 @@ public class GuiController {
     @FXML Label mC_x;
 
     @FXML ChoiceBox<String> operations_choice;
-    private List<String> operations_list = Arrays.asList("Adding", "Subtracting",
-            "Multiplying", "Dividing", "Maximum", "Minimum", "Hemming and Euclidean distances");
+    private List<String> operations_list = Arrays.asList("Adding", "Subtracting", "Multiplying",
+            "Dividing", "Maximum", "Minimum", "Hemming and Euclidean distances", "Fuzzy Indexes");
     private ObservableList<String> o_list = FXCollections.observableArrayList(operations_list);
 
     @FXML ChoiceBox<String> func_choice;
@@ -73,6 +72,13 @@ public class GuiController {
     @FXML Label hem_distance;
     @FXML Label evc_distance;
 
+    // for lab 8
+    @FXML Label linear_index;
+    @FXML Label quadratic_index;
+    @FXML RadioButton a_radio_choice;
+    @FXML RadioButton b_radio_choice;
+    @FXML RadioButton both_radio_choice;
+
     @FXML
     private void initialize() {
         func_choice.setItems(list);
@@ -92,6 +98,8 @@ public class GuiController {
 
         x_column.setCellValueFactory(new PropertyValueFactory<>("x"));
         mx_column.setCellValueFactory(new PropertyValueFactory<>("mx"));
+
+        a_radio_choice.selectedProperty().set(true);
     }
 
 // #################################  UTILS METHODS  ########################################
@@ -259,6 +267,8 @@ public class GuiController {
         return C_result;
     }
 
+    //############################################  METHODS FOR 7 LAB ##################################################
+
     // create hemming collection
     private TreeMap<Double, Double> hemmingBuild (Function first, Function second, LinkedList<Double> axisList) {
         TreeMap<Double, Double> map = new TreeMap<>();
@@ -277,22 +287,30 @@ public class GuiController {
         return map;
     }
 
-    private void hemmingDistance (TreeMap<Double, Double> map) {
+    // calculate hemming distance
+    private double hemmingDistance (TreeMap<Double, Double> map) {
         AtomicReference<Double> distance = new AtomicReference<>(0d);
-
         map.forEach((x, y) -> distance.updateAndGet(v -> (v + y)));
 
-        hem_distance.setText("" + round(distance.get(), 4));
+        double hem = round(distance.get(), 4);
+        hem_distance.setText("" + hem);
+        linear_index.setText("");
+
+        return hem;
     }
 
-    private void euclideanDistance (TreeMap<Double, Double> map) {
+    // calculate euclidean distance
+    private double euclideanDistance (TreeMap<Double, Double> map) {
         AtomicReference<Double> distance = new AtomicReference<>(0d);
 
         map.forEach((x, y) -> distance.updateAndGet(v -> (v + y)));
         distance.updateAndGet( v -> (Math.sqrt(distance.get())));
 
-        evc_distance.setText("" + round(distance.get(), 4));
+        double euc = round(distance.get(), 4);
+        evc_distance.setText("" + euc);
+        quadratic_index.setText("");
 
+        return euc;
     }
 
     // create list of axis X
@@ -312,12 +330,7 @@ public class GuiController {
         return new Pair<> (Math.min(first.getLBorder(), second.getLBorder()), Math.max(first.getRBorder(), second.getRBorder()));
     }
 
-    // build distances graphics
-    private void initDistanceFunc (Function first, Function second, double step) {
-        Pair<Double, Double> borders = findBorders(first, second);
-        LinkedList<Double> axisList = createAxisList(borders,step);
-
-        // build hemming
+    private void initHemmingDistance (Function first, Function second, LinkedList<Double> axisList) {
         TreeMap<Double, Double> hemming_map = hemmingBuild(first, second, axisList);
         XYChart.Series<Double, Double> series1 = new XYChart.Series<>();
         graph.getData().add(series1);
@@ -325,7 +338,10 @@ public class GuiController {
         hemming_map.forEach((x, y) -> series1.getData().add(new XYChart.Data<>(x, y)));
         setColor(series1, color_Hem);
 
-        // build euclidean
+        hemmingDistance(hemming_map);
+    }
+
+    private void initEuclideanDistance (Function first, Function second, LinkedList<Double> axisList) {
         TreeMap<Double, Double> euclidean_map = euclideanBuild(first, second, axisList);
         XYChart.Series<Double, Double> series2 = new XYChart.Series<>();
         graph.getData().add(series2);
@@ -333,10 +349,116 @@ public class GuiController {
         euclidean_map.forEach((x, y) -> series2.getData().add(new XYChart.Data<>(x, y)));
         setColor(series2, color_Evc);
 
-        hemmingDistance(hemming_map);
         euclideanDistance(euclidean_map);
-
     }
+
+    // build distances graphics
+    private void initDistanceFunc (Function first, Function second, double step) {
+        Pair<Double, Double> borders = findBorders(first, second);
+        LinkedList<Double> axisList = createAxisList(borders,step);
+
+        initHemmingDistance(first, second, axisList);
+        initEuclideanDistance(first, second, axisList);
+    }
+
+    //############################################  METHODS FOR 8 LAB ##################################################
+
+    private TreeMap<Double, Double> hemmingCrispBuild (Function fuzzy, CrispSet crisp, LinkedList<Double> axisList) {
+        TreeMap<Double, Double> map = new TreeMap<>();
+
+        axisList.forEach((x) -> map.put(x, Math.abs(fuzzy.function(x) - crisp.crispFunction(fuzzy.function(x)))));
+
+        return map;
+    }
+
+    private TreeMap<Double, Double> euclideanCrispBuild (Function fuzzy, CrispSet crisp, LinkedList<Double> axisList) {
+        TreeMap<Double, Double> map = new TreeMap<>();
+
+        axisList.forEach((x) -> map.put(x, Math.pow(fuzzy.function(x) - crisp.crispFunction(fuzzy.function(x)), 2)));
+
+        return map;
+    }
+
+    // hemming
+    private double linearIndex (double hem, double step) {
+        double index = (2/step) * hem;
+        return round(index,4);
+    }
+
+    // euclidean
+    private double quadraticIndex (double euc, double step) {
+        double index = (2/Math.sqrt(step)) * euc;
+        return round(index,4);
+    }
+
+    private void initCrisp (TreeMap<Double, Double> map, String func_name, ColorPicker picker) {
+        XYChart.Series<Double, Double> series = new XYChart.Series<>();
+        graph.getData().add(series);
+        series.setName(func_name);
+
+        map.forEach((x, y) -> series.getData().add(new XYChart.Data<>(x, y)));
+
+        setColor(series, picker);
+    }
+
+    private void initIndexesCalculator (Function first, Function second, double step) {
+        if (a_radio_choice.isSelected()) {
+            double first_step = findLength(first) / step;
+
+            CrispSet crisp = new CrispSet();
+            TreeMap<Double, Double> crispList = crisp.getList(first.pointsList(first_step));
+            initFunc(first, first_step, "A function", color_A);
+            initCrisp(crispList, "Crisp Set A", color_Hem);
+
+            double linearIndex = linearIndex(hemmingDistance(hemmingCrispBuild(first, crisp, createAxisList(new Pair<>(first.getLBorder(), first.getRBorder()), step))), step);
+            double quadraticIndex = quadraticIndex(euclideanDistance(euclideanCrispBuild(first, crisp, createAxisList(new Pair<>(first.getLBorder(), first.getRBorder()), step))), step);
+
+            linear_index.setText("" + linearIndex);
+            quadratic_index.setText("" + quadraticIndex);
+        }
+        else if (b_radio_choice.isSelected()) {
+            double second_step = findLength(second) / step;
+
+            CrispSet crisp = new CrispSet();
+            TreeMap<Double, Double> crispList = crisp.getList(second.pointsList(second_step));
+            initFunc(second, second_step, "B function", color_B);
+            initCrisp(crispList, "Crisp Set B", color_Evc);
+        }
+        else {
+            double first_step = findLength(first) / step;
+            double second_step = findLength(second) / step;
+
+            CrispSet crisp = new CrispSet();
+            TreeMap<Double, Double> crispList = crisp.getList(first.pointsList(first_step));
+            initFunc(first, first_step, "A function", color_A);
+            initCrisp(crispList, "Crisp Set A", color_Hem);
+
+            CrispSet crisp_ = new CrispSet();
+            TreeMap<Double, Double> crispList_ = crisp_.getList(second.pointsList(second_step));
+            initFunc(second, second_step, "B function", color_B);
+            initCrisp(crispList_, "Crisp Set B", color_Evc);
+        }
+    }
+
+    @FXML
+    private void activateARadio () {
+        b_radio_choice.setSelected(false);
+        both_radio_choice.setSelected(false);
+    }
+
+    @FXML
+    private void activateBRadio () {
+        a_radio_choice.setSelected(false);
+        both_radio_choice.setSelected(false);
+    }
+
+    @FXML
+    private void activateBothRadio () {
+        a_radio_choice.setSelected(false);
+        b_radio_choice.setSelected(false);
+    }
+
+    //############################################  MAIN MANAGER METHOD ################################################
 
     private void buildGraphics () {
         graph.getData().clear();
@@ -355,7 +477,7 @@ public class GuiController {
             double b_ = Double.parseDouble(b_inputB.getText());
 
             double step = Double.parseDouble(steps_input.getText());
-            int step_distance = Integer.parseInt(steps_distance.getText());
+            double step_distance = Integer.parseInt(steps_distance.getText());
             TreeMap<Double, Double> C_result = new TreeMap<>();
 
             graph.setCreateSymbols(false);
@@ -363,53 +485,73 @@ public class GuiController {
                 case "Triangular":
                     Triangular tri1 = new Triangular(c2, a2, b);
                     Triangular tri2 = new Triangular(c2_, a2_, b_);
-                    double this_step = findLengthStep(tri1, tri2, step);
-                    TreeMap<Double, Double> A = initFunc(tri1, this_step, "A function", color_A);
-                    TreeMap<Double, Double> B = initFunc(tri2, this_step, "B function", color_B);
 
-                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                        initDistanceFunc(tri1, tri2, step_distance);
+                    if (!operations_choice.getValue().equals("Fuzzy Indexes")) {
+                        double this_step = findLengthStep(tri1, tri2, step);
+                        TreeMap<Double, Double> A = initFunc(tri1, this_step, "A function", color_A);
+                        TreeMap<Double, Double> B = initFunc(tri2, this_step, "B function", color_B);
+
+                        if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                            initDistanceFunc(tri1, tri2, step_distance);
+                        }
+                        else C_result = initResultFunc(A, B, color_C);
                     }
-                    else C_result = initResultFunc(A, B, color_C);
+                    else initIndexesCalculator(tri1, tri2, step_distance);
+
                     break;
 
                 case "Bilateral Gaussian MF":
                     BilGauss bil1 = new BilGauss(a1, a2, c1, c2);
                     BilGauss bil2 = new BilGauss(a1_, a2_, c1_, c2_);
-                    double this_step1 = findLengthStep(bil1, bil2, step);
-                    TreeMap<Double, Double> A1 = initFunc(bil1, this_step1, "A function", color_A);
-                    TreeMap<Double, Double> B1 = initFunc(bil2, this_step1, "B function", color_B);
 
-                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                        initDistanceFunc(bil1, bil2, step_distance);
+                    if (!operations_choice.getValue().equals("Fuzzy Indexes")) {
+                        double this_step1 = findLengthStep(bil1, bil2, step);
+                        TreeMap<Double, Double> A1 = initFunc(bil1, this_step1, "A function", color_A);
+                        TreeMap<Double, Double> B1 = initFunc(bil2, this_step1, "B function", color_B);
+
+                        if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                            initDistanceFunc(bil1, bil2, step_distance);
+                        }
+                        else C_result = initResultFunc(A1, B1, color_C);
                     }
-                    else C_result = initResultFunc(A1, B1, color_C);
+                    else initIndexesCalculator(bil1, bil2, step_distance);
+
                     break;
 
                 case "Generalized bell MF":
                     BellMF bell = new BellMF(a1, b, c1);
                     BellMF bell1 = new BellMF(a1_, b_, c1_);
-                    double this_step2 = findLengthStep(bell, bell1, step);
-                    TreeMap<Double, Double> A2 = initFunc(bell, this_step2, "A function", color_A);
-                    TreeMap<Double, Double> B2 = initFunc(bell1, this_step2, "B function", color_B);
 
-                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                        initDistanceFunc(bell, bell1, step_distance);
+                    if (!operations_choice.getValue().equals("Fuzzy Indexes")) {
+                        double this_step2 = findLengthStep(bell, bell1, step);
+                        TreeMap<Double, Double> A2 = initFunc(bell, this_step2, "A function", color_A);
+                        TreeMap<Double, Double> B2 = initFunc(bell1, this_step2, "B function", color_B);
+
+                        if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                            initDistanceFunc(bell, bell1, step_distance);
+                        }
+                        else C_result = initResultFunc(A2, B2, color_C);
                     }
-                    else C_result = initResultFunc(A2, B2, color_C);
+                    else initIndexesCalculator(bell, bell1, step_distance);
+
                     break;
 
                 case "The difference between the two sigmoid MFs":
                     Sigmoid sigm = new Sigmoid(a1, a2, c1, c2);
                     Sigmoid sigm1 = new Sigmoid(a1_, a2_, c1_, c2_);
-                    double this_step3 = findLengthStep(sigm, sigm1, step);
-                    TreeMap<Double, Double> A3 = initFunc(sigm, this_step3, "A function", color_A);
-                    TreeMap<Double, Double> B3 = initFunc(sigm1, this_step3, "B function", color_B);
 
-                    if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
-                        initDistanceFunc(sigm, sigm1, step_distance);
+                    if (!operations_choice.getValue().equals("Fuzzy Indexes")) {
+                        double this_step3 = findLengthStep(sigm, sigm1, step);
+                        TreeMap<Double, Double> A3 = initFunc(sigm, this_step3, "A function", color_A);
+                        TreeMap<Double, Double> B3 = initFunc(sigm1, this_step3, "B function", color_B);
+
+                        if(operations_choice.getValue().equals("Hemming and Euclidean distances")) {
+                            initDistanceFunc(sigm, sigm1, step_distance);
+                        }
+                        else C_result = initResultFunc(A3, B3, color_C);
                     }
-                    else C_result = initResultFunc(A3, B3, color_C);
+                    else initIndexesCalculator(sigm, sigm1, step_distance);
+
                     break;
 
                 default:
